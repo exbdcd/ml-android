@@ -1,9 +1,9 @@
-#include <jni.h>
 #include <android/log.h>
 #include <ucontext.h>
 #include <pthread.h>
 
 #include "main.h"
+#include "JniUtils.h"
 #include "util.h"
 #include "gui/gui.h"
 #include "moonloader.h"
@@ -46,18 +46,19 @@ void *Init(void *p)
 
 jint JNI_OnLoad(JavaVM *vm, void *reserved)
 {
-	const char* g_libSAMP = "libsamp_orig.so";
-
-	// ----------------------- //
-		//getJniEnv(*vm);
-		//Jni_Load(g_libSAMP);
-	// ----------------------- //
-
+	JNIEnv* p_JNIEnv;
+	p_JNIEnv = getJniEnv(vm);
+	if(!p_JNIEnv)
+		return NULL;
+	
+	if(!Jni_Load(p_JNIEnv, "/data/data/com.rockstargames.gtasa/lib/libsamp_orig.so"))
+		return NULL;
+	
 	g_libGTASA = FindLibrary("libGTASA.so");
-
-	//g_libSAMP = FindLibrary("libsamp_orig.so");
-
-	if(g_libGTASA == 0/*|| g_libSAMP == 0*/)return 0;
+	uintptr_t g_libSAMP = FindLibrary("libsamp_orig.so");
+	
+	if(g_libGTASA == 0 || g_libSAMP )
+		return 0;
 
 	srand(time(0));
 
